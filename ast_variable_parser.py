@@ -28,3 +28,35 @@ class VariableAssignmentVisitor(ast.NodeVisitor):
             except Exception:
                 names.append(type(target).__name__)
         return names
+
+    def visit_Assign(self, node: ast.Assign):
+        names = []
+        for target in node.targets:
+            names.extend(self._extract_names(target))
+        self.assignments.append(Assignment(
+            line_number=node.lineno,
+            variable_names=names,
+            assignment_type="Assign",
+            source_snippet=ast.unparse(node),
+        ))
+        self.generic_visit(node)
+ 
+    def visit_AugAssign(self, node: ast.AugAssign):
+        names = self._extract_names(node.target)
+        self.assignments.append(Assignment(
+            line_number=node.lineno,
+            variable_names=names,
+            assignment_type="AugAssign",
+            source_snippet=ast.unparse(node),
+        ))
+        self.generic_visit(node)
+ 
+    def visit_AnnAssign(self, node: ast.AnnAssign):
+        names = self._extract_names(node.target)
+        self.assignments.append(Assignment(
+            line_number=node.lineno,
+            variable_names=names,
+            assignment_type="AnnAssign",
+            source_snippet=ast.unparse(node),
+        ))
+        self.generic_visit(node)
