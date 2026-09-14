@@ -60,3 +60,25 @@ class VariableAssignmentVisitor(ast.NodeVisitor):
             source_snippet=ast.unparse(node),
         ))
         self.generic_visit(node)
+
+    def visit_For(self, node: ast.For):
+        names = self._extract_names(node.target)
+        self.assignments.append(Assignment(
+            line_number=node.lineno,
+            variable_names=names,
+            assignment_type="For",
+            source_snippet=f"for {ast.unparse(node.target)} in {ast.unparse(node.iter)}:",
+        ))
+        self.generic_visit(node)
+ 
+    def visit_With(self, node: ast.With):
+        for item in node.items:
+            if item.optional_vars is not None:
+                names = self._extract_names(item.optional_vars)
+                self.assignments.append(Assignment(
+                    line_number=node.lineno,
+                    variable_names=names,
+                    assignment_type="With",
+                    source_snippet=ast.unparse(node).splitlines()[0],
+                ))
+        self.generic_visit(node)
