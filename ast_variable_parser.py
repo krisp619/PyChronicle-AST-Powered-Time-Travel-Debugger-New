@@ -82,3 +82,12 @@ class VariableAssignmentVisitor(ast.NodeVisitor):
                     source_snippet=ast.unparse(node).splitlines()[0],
                 ))
         self.generic_visit(node)
+
+def parse_file(filepath: str) -> list[Assignment]:
+    with open(filepath, "r", encoding="utf-8") as f:
+        source = f.read()
+ 
+    tree = ast.parse(source, filename=filepath)
+    visitor = VariableAssignmentVisitor()
+    visitor.visit(tree)
+    return sorted(visitor.assignments, key=lambda a: a.line_number)
