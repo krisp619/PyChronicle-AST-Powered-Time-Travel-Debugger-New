@@ -28,3 +28,57 @@ class VariableAssignmentVisitor(ast.NodeVisitor):
             except Exception:
                 names.append(type(target).__name__)
         return names
+
+    def visit_Assign(self, node: ast.Assign):
+        names = []
+        for target in node.targets:
+            names.extend(self._extract_names(target))
+        self.assignments.append(Assignment(
+            line_number=node.lineno,
+            variable_names=names,
+            assignment_type="Assign",
+            source_snippet=ast.unparse(node),
+        ))
+        self.generic_visit(node)
+ 
+    def visit_AugAssign(self, node: ast.AugAssign):
+        names = self._extract_names(node.target)
+        self.assignments.append(Assignment(
+            line_number=node.lineno,
+            variable_names=names,
+            assignment_type="AugAssign",
+            source_snippet=ast.unparse(node),
+        ))
+        self.generic_visit(node)
+ 
+    def visit_AnnAssign(self, node: ast.AnnAssign):
+        names = self._extract_names(node.target)
+        self.assignments.append(Assignment(
+            line_number=node.lineno,
+            variable_names=names,
+            assignment_type="AnnAssign",
+            source_snippet=ast.unparse(node),
+        ))
+        self.generic_visit(node)
+
+    def visit_For(self, node: ast.For):
+        names = self._extract_names(node.target)
+        self.assignments.append(Assignment(
+            line_number=node.lineno,
+            variable_names=names,
+            assignment_type="For",
+            source_snippet=f"for {ast.unparse(node.target)} in {ast.unparse(node.iter)}:",
+        ))
+        self.generic_visit(node)
+ 
+    def visit_With(self, node: ast.With):
+        for item in node.items:
+            if item.optional_vars is not None:
+                names = self._extract_names(item.optional_vars)
+                self.assignments.append(Assignment(
+                    line_number=node.lineno,
+                    variable_names=names,
+                    assignment_type="With",
+                    source_snippet=ast.unparse(node).splitlines()[0],
+                ))
+        self.generic_visit(node)
