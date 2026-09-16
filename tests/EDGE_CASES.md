@@ -58,3 +58,60 @@ Passed - function assignments detected.
 
 Result:
 Passed - class-related assignments detected.
+
+## 9. Augmented Assignment
+
+Input:
+
+total = 10
+total += 5
+
+Result:
+
+Passed - detected total with AugAssign.
+
+
+## 10. Annotated Assignment
+
+Input:
+
+count: int = 10
+
+Result:
+
+Passed - detected count with AnnAssign.
+
+
+## 11. Dictionary Assignment
+
+Input:
+
+data = {}
+data["name"] = "Chandana"
+
+Result:
+
+Passed - detected data and data["name"].
+
+
+## 12. Multiple Assignment
+
+Input:
+
+a, b, c = [10, 20, 30]
+
+Result:
+
+Passed - detected a, b, and c.
+
+
+## 13. With Statement
+
+Input:
+
+with open("test.txt", "w") as file:
+    file.write("Hello")
+
+Result:
+
+Passed - detected file with With assignment.
