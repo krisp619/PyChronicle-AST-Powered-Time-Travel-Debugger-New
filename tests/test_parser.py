@@ -18,4 +18,4 @@ def test_parser(file_path):
         print(assignment)
 
 
-test_parser("tests/sample_scripts/subscript_assignment_test.py")
+test_parser("tests/sample_scripts/multiple_assignment_test.py")
