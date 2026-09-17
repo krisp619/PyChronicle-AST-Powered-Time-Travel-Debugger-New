@@ -82,3 +82,31 @@ class VariableAssignmentVisitor(ast.NodeVisitor):
                     source_snippet=ast.unparse(node).splitlines()[0],
                 ))
         self.generic_visit(node)
+
+def parse_file(filepath: str) -> list[Assignment]:
+    with open(filepath, "r", encoding="utf-8") as f:
+        source = f.read()
+ 
+    tree = ast.parse(source, filename=filepath)
+    visitor = VariableAssignmentVisitor()
+    visitor.visit(tree)
+    return sorted(visitor.assignments, key=lambda a: a.line_number)
+
+def main():
+    if len(sys.argv) != 2:
+        print("Usage: python ast_variable_parser.py <target_script.py>")
+        sys.exit(1)
+ 
+    target = sys.argv[1]
+    assignments = parse_file(target)
+ 
+    print(f"\nFound {len(assignments)} variable assignment(s) in {target}:\n")
+    print(f"{'Line':<6} {'Type':<10} {'Variable(s)':<20} Source")
+    print("-" * 70)
+    for a in assignments:
+        vars_str = ", ".join(a.variable_names)
+        print(f"{a.line_number:<6} {a.assignment_type:<10} {vars_str:<20} {a.source_snippet}")
+ 
+ 
+if __name__ == "__main__":
+    main()
