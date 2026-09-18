@@ -114,4 +114,4 @@ with open("test.txt", "w") as file:
 
 Result:
 
-Passed - detected file with With assignment.
+Passed - detected file variable from the with statement.
