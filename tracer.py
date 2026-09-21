@@ -23,3 +23,22 @@ class Tracer:
             return repr(value)
         except Exception:
             return f"<unrepresentable {type(value).__name__}>"
+
+    def _trace_function(self, frame, event, arg):
+        if frame.f_code.co_filename != self.target_filepath:
+            return self._trace_function  
+
+        if event == "line":
+            line_no = frame.f_lineno
+            current_locals = frame.f_locals
+
+            for var_name, value in current_locals.items():
+                serialized = self._serialize(value)
+                self.records.append(TraceRecord(
+                    timestamp=time.time(),
+                    line_number=line_no,
+                    variable_name=var_name,
+                    value=serialized,
+                ))
+
+        return self._trace_function
