@@ -33,6 +33,8 @@ class Tracer:
             current_locals = frame.f_locals
 
             for var_name, value in current_locals.items():
+                if var_name.startswith("__") and var_name.endswith("__"):
+                    continue
                 serialized = self._serialize(value)
                 self.records.append(TraceRecord(
                     timestamp=time.time(),
