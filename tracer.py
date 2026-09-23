@@ -44,3 +44,10 @@ class Tracer:
                 ))
 
         return self._trace_function
+
+    def run(self):
+        sys.settrace(self._trace_function)
+        try:
+            runpy.run_path(self.target_filepath, run_name="__main__")
+        finally:
+            sys.settrace(None)
