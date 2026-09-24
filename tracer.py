@@ -51,3 +51,23 @@ class Tracer:
             runpy.run_path(self.target_filepath, run_name="__main__")
         finally:
             sys.settrace(None)
+
+def main():
+    if len(sys.argv) != 2:
+        print("Usage: python tracer.py <target_script.py>")
+        sys.exit(1)
+ 
+    target = sys.argv[1]
+    tracer = Tracer(target)
+    tracer.run()
+ 
+    print(f"\nCaptured {len(tracer.records)} variable snapshots "
+          f"across execution of {target}:\n")
+    print(f"{'Line':<6} {'Variable':<15} Value")
+    print("-" * 60)
+    for r in tracer.records:
+        print(f"{r.line_number:<6} {r.variable_name:<15} {r.value}")
+ 
+ 
+if __name__ == "__main__":
+    main()
