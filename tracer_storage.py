@@ -42,4 +42,11 @@ class TracerStorage:
         self.connection.commit()
 
     def get_states(self):
-        return self.states
+        cursor = self.connection.execute(
+            """
+            SELECT line_number, variable_name, serialized_value
+            FROM execution_state
+            """
+        )
+
+        return cursor.fetchall()
