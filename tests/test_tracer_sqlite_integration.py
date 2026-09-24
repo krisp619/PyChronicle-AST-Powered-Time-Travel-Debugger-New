@@ -46,5 +46,6 @@ print("SQLite data:", rows)
 
 assert len(tracer.records) == len(rows)
 assert len(rows) > 0
+assert rows[0][1] == "x"
 
 print("Integration test passed!")
