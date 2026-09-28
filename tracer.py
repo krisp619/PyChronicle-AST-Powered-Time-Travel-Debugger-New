@@ -10,6 +10,8 @@ import linecache
 import os
 import sys
 import time
+import runpy
+from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any, Callable, Optional
 
@@ -28,6 +30,60 @@ IGNORED_VARIABLE_NAMES = {
     "__file__",
     "__cached__",
 }
+
+
+@dataclass
+class TraceRecord:
+    timestamp: float
+    line_number: int
+    variable_name: str
+    value: str
+
+
+class Tracer:
+    """Basic in-memory tracer for simple snapshot recording."""
+    def __init__(self, target_filepath: str):
+        self.target_filepath = str(Path(target_filepath).resolve())
+        self.records: list[TraceRecord] = []
+        self._last_snapshot: dict = {}
+
+    def _serialize(self, value) -> str:
+        try:
+            return repr(value)
+        except Exception:
+            return f"<unrepresentable {type(value).__name__}>"
+
+    def _trace_function(self, frame, event, arg):
+        try:
+            frame_path = str(Path(frame.f_code.co_filename).resolve())
+            if frame_path != self.target_filepath:
+                return self._trace_function
+        except Exception:
+            return self._trace_function
+
+        if event == "line":
+            line_no = frame.f_lineno
+            current_locals = frame.f_locals
+
+            for var_name, value in current_locals.items():
+                if var_name.startswith("__") and var_name.endswith("__"):
+                    continue
+                serialized = self._serialize(value)
+                self.records.append(TraceRecord(
+                    timestamp=time.time(),
+                    line_number=line_no,
+                    variable_name=var_name,
+                    value=serialized,
+                ))
+
+        return self._trace_function
+
+    def run(self):
+        sys.settrace(self._trace_function)
+        try:
+            runpy.run_path(self.target_filepath, run_name="__main__")
+        finally:
+            sys.settrace(None)
 
 
 def safe_serialize(value: Any, max_len: int = 500) -> tuple[str, str]:
@@ -193,3 +249,31 @@ class ExecutionTracer:
             stats["runtime_error"] = str(self._error)
 
         return self.storage, stats
+
+
+def main():
+    if len(sys.argv) != 2:
+        print("Usage: python tracer.py <target_script.py>")
+        sys.exit(1)
+
+    target = sys.argv[1]
+    storage = StateStorage(":memory:")
+    tracer = ExecutionTracer(target, storage=storage, enable_compression=True)
+    storage, stats = tracer.run()
+
+    print(f"\nExecution Traced for: {target}")
+    print(f"Total Steps: {stats['total_steps']}")
+    print(f"Deltas Stored: {stats['total_deltas_stored']} (Compression: {stats['compression_ratio_pct']}%)")
+    print(f"Execution Time: {stats['execution_time_seconds']}s\n")
+
+    steps = storage.get_all_steps()
+    print(f"{'Step':<6} {'Line':<6} {'Func':<15} {'Source'}")
+    print("-" * 60)
+    for s in steps[:30]:
+        print(f"{s.step_id:<6} {s.line_number:<6} {s.func_name:<15} {s.source_line}")
+    if len(steps) > 30:
+        print(f"... and {len(steps) - 30} more steps.")
+
+
+if __name__ == "__main__":
+    main()
