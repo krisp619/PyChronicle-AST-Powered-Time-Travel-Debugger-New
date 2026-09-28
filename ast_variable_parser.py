@@ -82,3 +82,18 @@ class VariableAssignmentVisitor(ast.NodeVisitor):
                     source_snippet=ast.unparse(node).splitlines()[0],
                 ))
         self.generic_visit(node)
+
+
+def parse_assignments_from_source(source: str) -> list[Assignment]:
+    """Parses Python source code string and returns all identified variable assignments."""
+    tree = ast.parse(source)
+    visitor = VariableAssignmentVisitor()
+    visitor.visit(tree)
+    return visitor.assignments
+
+
+def parse_assignments_from_file(file_path: str) -> list[Assignment]:
+    """Reads a Python file, parses its AST, and returns all variable assignments."""
+    with open(file_path, "r", encoding="utf-8") as f:
+        source = f.read()
+    return parse_assignments_from_source(source)
