@@ -1,0 +1,21 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "pychronicle"
+version = "1.0.0"
+description = "AST-Powered Time-Travel Debugger for Python with In-Memory SQLite and Textual TUI"
+readme = "README.md"
+requires-python = ">=3.9"
+authors = [
+    { name = "Krishna Potdar", email = "potdarkrishna352@gmail.com" }
+]
+dependencies = [
+    "click>=8.0.0",
+    "rich>=13.0.0",
+    "textual>=0.50.0"
+]
+
+[project.scripts]
+pychronicle = "cli:main"
